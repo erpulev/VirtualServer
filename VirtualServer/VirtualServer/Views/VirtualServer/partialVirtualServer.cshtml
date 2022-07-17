@@ -1,0 +1,43 @@
+﻿@model IEnumerable<VirtualServer.Models.VirtualServers>
+
+
+
+@if (Model == null)
+{
+    <tr>
+        <td colspan="4">
+            При получении данных произошла ошибка.
+        </td>
+    </tr>
+}
+else if (Model.Count() == 0)
+{
+    <tr>
+        <td colspan="4">
+            База данных пустая
+        </td>
+    </tr>
+}
+else
+{
+    foreach (var item in Model)
+    {
+<tr>
+    <td>@item.VirtualServerId</td>
+    <td>@item.CreateDateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
+    <td>@item.RemoveDateTime</td>
+
+    @if (item.RemoveDateTime == null)
+    {
+        <td><input type="checkbox" name="chDel" id="@item.VirtualServerId" /></td>
+    }
+    else
+    {
+        <td></td>
+    }
+
+</tr>
+    }
+}
+
+

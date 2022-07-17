@@ -1,0 +1,171 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutVirtualServer.cshtml";
+}
+
+<div style="margin:10px 10px 10px 0px;">
+    <button onclick="AddServer('AddServer')" type="button" class="btn btn-success" title="Добавление нового сервера в список">Добавить </button>
+    <button onclick="DeleteServers('DeleteServers')" type="button" class="btn btn-danger" title="Отметить выбранные сервера удалёнными">Удалить </button>
+</div>
+<table class="table table-bordered table-striped small">
+    <thead>
+        <tr>
+            <td title="Текущая дата и время">CurrentDateTime:</td>
+            <td title="@DateTime.Now.ToString("zzz")"><label id="currentDateTime" /></td>
+            <td title="Статус выполненных запросов" colspan="2"><div id="result" /></td>
+        </tr>
+        <tr>
+            <td title="Суммарное время, в течении которого в таблице присутсвовал хотя бы один неудаленный сервер">TotalUsageTime::</td>
+            <td><label id="totalUsageTime" /></td>
+            <td colspan="2"></td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <th>VirtualServerId</th>
+            <th>CreateDateTime</th>
+            <th>RemoveDateTime</th>
+            <th>SelectedForRemove <input onclick="CheckALl()" type="checkbox" id="chAllId" /></th>
+        </tr>
+    </thead>
+    <tbody id="tBody"/>
+</table>
+
+
+
+
+@section scripts{
+    <script type="text/javascript">
+
+        window.onload = function () {
+
+            //Load Data table servers from database
+            CallController('GetAllServers',"@(Url.Action("GetData", "VirtualServer"))");
+
+            //start show Date and Time
+            setInterval(sayTime, 1000);
+
+            //start show time total worked servers
+            setInterval(sayTotalUsageTime, 1000); //увеличить время до 1 минуты?
+        };
+
+        //Показывать статус выполненных запросов. По хорошему сервер должен отдавать текст статуса.
+        function ShowLog(message) {
+            document.getElementById('result').innerHTML = message;
+            setTimeout(HideLog, 5000);
+        }
+        function HideLog() {
+            document.getElementById('result').innerHTML = '';
+        }
+
+        //checkAll 
+        function CheckALl(){
+            var checkboxes = document.getElementsByName('chDel');
+            var ch = document.getElementById('chAllId').checked;
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = ch;
+            }
+        }
+
+        //Clear checkbox when Add or Delete servers
+        function CheckALlClear() {
+            document.getElementById('chAllId').checked = false;
+        }
+
+        //Show Date and Time
+        function sayTime() {
+            document.getElementById("currentDateTime").innerHTML = new Date().toLocaleString();
+        };
+
+        //Show Total time while worked servers
+        function sayTotalUsageTime() {
+            CallController("sayTotalUsageTime", "@(Url.Action("GettotalUsageTime", "VirtualServer"))");
+        };
+
+        //Add new servers
+        function AddServer(cmd) {
+            CallController(cmd, "@(Url.Action("AddData", "VirtualServer"))");
+            CheckALlClear();
+        };
+
+        //Delete servers where checked
+        function DeleteServers(cmd) {
+            var checkboxes = document.getElementsByName('chDel');
+            var serversID = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    serversID.push(checkboxes[i].id);
+                }
+            }
+            if (serversID.length > 0) {
+                 let xhr = new XMLHttpRequest();
+                xhr.open("POST", "@(Url.Action("DeleteData", "VirtualServer"))", true);
+                xhr.setRequestHeader("Accept", "application/json");
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.send(JSON.stringify(serversID));
+                xhr.onload = function() {
+                  if (xhr.status != 200) {
+                    console.log(`Ошибка ${xhr.status}: ${xhr.statusText}`);
+                  } else {
+                      document.getElementById("tBody").innerHTML = xhr.response;
+                      CheckALlClear();
+                      ShowLog("Выбранные сервера успешно удалены");
+                  }
+                };
+                xhr.onprogress = function(event) {
+                  if (event.lengthComputable) {
+                    console.log(`Получено ${event.loaded} из ${event.total} байт`);
+                  } else {
+                    console.log(`Получено ${event.loaded} байт`);
+                  }
+                };
+                xhr.onerror = function() {
+                  console.log("Запрос не удался");
+                };
+            }
+            else {
+                alert("Выберите сервера для удаления");
+            }
+        };
+
+
+        //Get all servers from BD
+        function CallController(cmd, url) {
+            let xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.send();
+                xhr.onload = function() {
+                  if (xhr.status != 200) {
+                    console.log(`Ошибка ${xhr.status}: ${xhr.statusText}`);
+                  } else {
+                      if (cmd == "GetAllServers") {
+                          document.getElementById("tBody").innerHTML = xhr.response;
+                          ShowLog("Список серверов обновлён");
+                      }
+                      else if (cmd == "AddServer") {
+                          document.getElementById("tBody").innerHTML = xhr.response;
+                          ShowLog("Сервер успешно создан");
+                      }
+                      else if (cmd == "sayTotalUsageTime") {
+                          document.getElementById("totalUsageTime").innerHTML = JSON.parse(xhr.response).data;
+                      }
+                  }
+                };
+                xhr.onprogress = function(event) {
+                  if (event.lengthComputable) {
+                    console.log(`Получено ${event.loaded} из ${event.total} байт`);
+                  } else {
+                    console.log(`Получено ${event.loaded} байт`);
+                  }
+                };
+                xhr.onerror = function() {
+                  console.log("Запрос не удался");
+            };
+        };
+    </script>
+}
+
+
+
+
+
