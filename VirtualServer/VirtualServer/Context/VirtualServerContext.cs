@@ -11,10 +11,7 @@ namespace VirtualServer.Context
     {
         public VirtualServerContext() //|DataDirectory| - path to local file mdf (if solution change directory)
             : base(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|DatabaseVirtualServer.mdf;Integrated Security=True") //|DataDirectory| --> need create manual folder App_Data
-        {
-            //новый инициализатор
-            //Database.SetInitializer<VirtualServerContext>(new VirtualServerInitializer());
-        }
+        {}
 
         public DbSet<VirtualServers> VirtualServer { get; set; }
         
