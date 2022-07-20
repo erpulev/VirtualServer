@@ -66,10 +66,10 @@ namespace VirtualServer.Controllers
         public ActionResult GettotalUsageTime()
         {
             SqlInjection msql = new SqlInjection();
-            var result = msql.GetTotalUsageTime();
-            TimeSpan tm = TimeSpan.FromTicks(result);
 
-            return Json(new { success = true, message = "mes", data = $"{tm.Days} д. {tm.Hours} ч. {tm.Minutes} м. {tm.Seconds} с." }, JsonRequestBehavior.AllowGet);
+            var tm = msql.GetTotalUsageTime();
+
+            return Json(new { success = true, message = "mes", data = $"{tm.Days} д. {tm.Hours} ч. {tm.Minutes} м. {tm.Seconds} с. " }, JsonRequestBehavior.AllowGet);
         }
         
         //Сравнение хеш кода двух моделей, для запроса на обновление страницы, если данные были изменены извне
